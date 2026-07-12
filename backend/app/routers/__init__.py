@@ -7,6 +7,11 @@ from app.routers.assets import router as asset_router
 from app.routers.allocations import router as allocation_router
 from app.routers.maintenance_router import router as maintenance_router
 from app.routers.transfers import router as transfer_router
+from app.routers.bookings import router as bookings_router
+from app.routers.activity_logs import router as activity_logs_router
+from app.routers.dashboard import router as dashboard_router
+from app.routers.audits import router as audits_router
+from app.routers.reports import router as reports_router
 
 def register_routers(app):
     api_router = APIRouter(prefix="/api/v1")
@@ -15,9 +20,16 @@ def register_routers(app):
     api_router.include_router(department_router)
     api_router.include_router(user_router)
     api_router.include_router(category_router)
+    
     api_router.include_router(asset_router)
     api_router.include_router(allocation_router)
     api_router.include_router(maintenance_router)
     api_router.include_router(transfer_router)
+    
+    api_router.include_router(bookings_router)
+    api_router.include_router(activity_logs_router)
+    api_router.include_router(dashboard_router)
+    api_router.include_router(audits_router)
+    api_router.include_router(reports_router)
     
     app.include_router(api_router)
