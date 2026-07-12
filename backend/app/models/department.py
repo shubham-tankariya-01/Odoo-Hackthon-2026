@@ -9,5 +9,5 @@ class Department(BaseModel):
 
     name = Column(String, unique=True, index=True, nullable=False)
     parent_department_id = Column(UUID(as_uuid=True), ForeignKey("departments.id"), nullable=True)
-    head_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    head_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", use_alter=True, name="fk_department_head_user"), nullable=True)
     status = Column(String, default=DepartmentStatus.ACTIVE, nullable=False)
