@@ -1,0 +1,131 @@
+# Asset Lifecycle
+
+## Responsibilities
+
+Owns the complete lifecycle of every asset.
+
+Everything related to
+
+- Asset Registration
+- Allocation
+- Transfers
+- Maintenance
+
+belongs here.
+
+---
+
+## Modules
+
+```
+Assets
+
+Allocations
+
+Transfers
+
+Maintenance
+```
+
+---
+
+## Controllers
+
+```
+asset_controller.py
+
+allocation_controller.py
+
+transfer_controller.py
+
+maintenance_controller.py
+```
+
+---
+
+## Services
+
+```
+asset_service.py
+
+allocation_service.py
+
+transfer_service.py
+
+maintenance_service.py
+```
+
+---
+
+## Endpoints
+
+```
+/assets
+
+/allocations
+
+/transfers
+
+/maintenance
+```
+
+---
+
+## Business Rules
+
+Responsible for implementing
+
+### Asset State Machine
+
+```
+Available
+
+↓
+
+Allocated
+
+↓
+
+Returned
+
+↓
+
+Available
+```
+
+```
+Available
+
+↓
+
+Under Maintenance
+
+↓
+
+Available
+```
+
+```
+Available
+
+↓
+
+Reserved
+
+↓
+
+Allocated
+```
+
+---
+
+Also implements
+
+- Asset allocation
+- Return workflow
+- Transfer approval
+- Maintenance approval
+- Asset status updates
+- Conflict detection
+
+---

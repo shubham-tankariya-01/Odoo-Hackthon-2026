@@ -7,3 +7,4 @@ from app.models.asset_category import AssetCategory
 from app.models.asset import Asset
 from app.models.allocation import Allocation
 from app.models.maintenance import MaintenanceRequest
+from app.models.transfer import Transfer
