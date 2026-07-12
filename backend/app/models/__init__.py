@@ -1,10 +1,13 @@
 from app.models.base import Base
 from app.models.user import User
 
-# Add other models here as they are created
+# Phase 1: Organization
 from app.models.department import Department
 from app.models.asset_category import AssetCategory
+
+# Phase 2: Assets
 from app.models.asset import Asset
 from app.models.allocation import Allocation
 from app.models.maintenance import MaintenanceRequest
 from app.models.transfer import Transfer
+
