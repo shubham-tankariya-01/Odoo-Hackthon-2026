@@ -49,7 +49,9 @@ class AssetRepository(BaseRepository[Asset]):
         if asset_tag:
             query = query.where(Asset.asset_tag.ilike(f"%{asset_tag}%"))
         if serial_number:
-            query = query.where(Asset.serial_number.ilike(f"%{serial_number}%"))
+            query = query.where(
+                Asset.serial_number.ilike(
+                    f"%{serial_number}%"))
         if category_id:
             query = query.where(Asset.category_id == category_id)
         if current_status:

@@ -5,6 +5,7 @@ from app.models.activity_log import ActivityLog
 from app.schemas.activity_log import ActivityLogCreate
 from app.repositories.activity_log_repository import ActivityLogRepository
 
+
 class ActivityLogService:
     def __init__(self, session: AsyncSession):
         self.repo = ActivityLogRepository(session)
@@ -25,11 +26,12 @@ class ActivityLogService:
     async def get_user_notifications(self, user_id: UUID) -> List[ActivityLog]:
         return await self.repo.get_by_recipient(user_id)
 
-    async def mark_notification_read(self, notification_id: UUID, user_id: UUID) -> ActivityLog:
+    async def mark_notification_read(
+            self, notification_id: UUID, user_id: UUID) -> ActivityLog:
         log = await self.repo.get_by_id(notification_id)
         if not log:
             raise ValueError("Notification not found")
         if log.recipient_user_id != user_id:
             raise PermissionError("Cannot modify another user's notification")
-        
+
         return await self.repo.mark_as_read(log)

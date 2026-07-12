@@ -82,7 +82,8 @@ class TransferService:
         }
         return await self.transfer_repo.create(transfer_in)
 
-    async def approve(self, transfer_id: UUID, approved_by_id: UUID) -> Transfer:
+    async def approve(self, transfer_id: UUID,
+                      approved_by_id: UUID) -> Transfer:
         """
         Step 3.3: Close the old allocation and open a new one for the receiver.
         Reuses the existing allocation service logic to maintain status check integrity.
@@ -91,11 +92,13 @@ class TransferService:
 
         if transfer.status != TransferStatus.requested:
             raise ConflictException(
-                f"Cannot approve transfer request in '{transfer.status}' status"
+                f"Cannot approve transfer request in '{
+                    transfer.status}' status"
             )
 
-        # 1. Check if the active allocation still belongs to the 'from_employee'
-        active_alloc = await self.alloc_repo.get_active_by_asset(transfer.asset_id)
+        # 1. Check if the active allocation still belongs to the
+        # 'from_employee'
+        active_alloc = await self.alloc_repo.get_active_by_asset(transfer.asset_id)  # type: ignore
         if not active_alloc or active_alloc.employee_id != transfer.from_employee_id:
             raise ConflictException(
                 "The source allocation has changed. This transfer request is no longer valid."
@@ -105,10 +108,11 @@ class TransferService:
         # Reuses the return_asset flow from Step 2
         alloc_service = AllocationService(self.alloc_repo, self.asset_repo)
         await alloc_service.return_asset(
-            active_alloc.id,
+            active_alloc.id,  # type: ignore
             AllocationReturn(
                 return_condition="Good",
-                return_notes=f"Auto-returned during Transfer approval ID: {transfer.id}",
+                return_notes=f"Auto-returned during Transfer approval ID: {
+                    transfer.id}",
             ),
         )
 
@@ -116,10 +120,10 @@ class TransferService:
         # Reuses the allocate flow from Step 2
         await alloc_service.allocate(
             AllocationCreate(
-                asset_id=transfer.asset_id,
-                employee_id=transfer.to_employee_id,
-                department_id=active_alloc.department_id,  # Preserve department if any
-                expected_return_date=active_alloc.expected_return_date,
+                asset_id=transfer.asset_id,  # type: ignore
+                employee_id=transfer.to_employee_id,  # type: ignore
+                department_id=active_alloc.department_id,  # type: ignore  # type: ignore
+                expected_return_date=active_alloc.expected_return_date,  # type: ignore
             ),
             allocated_by_id=approved_by_id,
         )
@@ -134,7 +138,8 @@ class TransferService:
             },
         )
 
-    async def reject(self, transfer_id: UUID, approved_by_id: UUID) -> Transfer:
+    async def reject(self, transfer_id: UUID,
+                     approved_by_id: UUID) -> Transfer:
         transfer = await self.get_by_id(transfer_id)
 
         if transfer.status != TransferStatus.requested:

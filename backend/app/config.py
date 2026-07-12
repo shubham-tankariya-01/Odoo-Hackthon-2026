@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import json
 
+
 class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
@@ -16,6 +17,8 @@ class Settings(BaseSettings):
         except Exception:
             return []
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8")
 
-settings = Settings()
+
+settings = Settings()  # type: ignore

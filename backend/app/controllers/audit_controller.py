@@ -4,6 +4,7 @@ from uuid import UUID
 from app.schemas.audit import AuditCycleCreate, AuditCycleUpdate
 from app.services.audit_service import AuditService
 
+
 class AuditController:
     @staticmethod
     async def create_cycle(cycle_in: AuditCycleCreate, db: AsyncSession):
@@ -24,7 +25,8 @@ class AuditController:
             raise HTTPException(status_code=404, detail=str(e))
 
     @staticmethod
-    async def update_cycle(cycle_id: UUID, cycle_in: AuditCycleUpdate, db: AsyncSession):
+    async def update_cycle(
+            cycle_id: UUID, cycle_in: AuditCycleUpdate, db: AsyncSession):
         service = AuditService(db)
         try:
             return await service.update_cycle(cycle_id, cycle_in)

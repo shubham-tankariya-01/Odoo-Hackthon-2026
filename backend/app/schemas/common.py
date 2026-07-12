@@ -5,12 +5,15 @@ from datetime import datetime
 
 T = TypeVar('T')
 
+
 class MessageResponse(BaseModel):
     message: str
+
 
 class ErrorResponse(BaseModel):
     detail: str
     errors: Optional[List[Any]] = None
+
 
 class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T]
@@ -19,9 +22,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
     page_size: int
     pages: int
 
+
 class BaseSchema(BaseModel):
     id: UUID
     created_at: datetime
     updated_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)

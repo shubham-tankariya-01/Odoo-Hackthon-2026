@@ -6,6 +6,7 @@ from app.models.base import Base
 
 T = TypeVar('T', bound=Base)
 
+
 class BaseRepository(Generic[T]):
     def __init__(self, model_class: Type[T], session: AsyncSession):
         self.model_class = model_class

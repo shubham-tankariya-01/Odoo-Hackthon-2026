@@ -25,9 +25,11 @@ class MaintenanceRepository(BaseRepository[MaintenanceRequest]):
         if asset_id:
             query = query.where(MaintenanceRequest.asset_id == asset_id)
         if raised_by_id:
-            query = query.where(MaintenanceRequest.raised_by_id == raised_by_id)
+            query = query.where(
+                MaintenanceRequest.raised_by_id == raised_by_id)
         if technician_id:
-            query = query.where(MaintenanceRequest.technician_id == technician_id)
+            query = query.where(
+                MaintenanceRequest.technician_id == technician_id)
         if status:
             query = query.where(MaintenanceRequest.status == status)
         if priority:
@@ -38,6 +40,7 @@ class MaintenanceRepository(BaseRepository[MaintenanceRequest]):
         )
         total = count_result.scalar() or 0
 
-        query = query.order_by(MaintenanceRequest.created_at.desc()).offset(skip).limit(limit)
+        query = query.order_by(
+            MaintenanceRequest.created_at.desc()).offset(skip).limit(limit)
         result = await self.session.execute(query)
         return result.scalars().all(), total

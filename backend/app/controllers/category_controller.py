@@ -6,6 +6,7 @@ from app.services.category_service import CategoryService
 from app.repositories.category_repository import CategoryRepository
 from app.utils.responses import paginated_response
 
+
 class CategoryController:
     @staticmethod
     async def get_all(db: AsyncSession, page: int = 1, page_size: int = 20):
@@ -23,14 +24,14 @@ class CategoryController:
     async def create(data: CategoryCreate, db: AsyncSession):
         service = CategoryService(CategoryRepository(db))
         cat = await service.create(data)
-        return await service.get_by_id(cat.id)
+        return await service.get_by_id(cat.id)  # type: ignore
 
     @staticmethod
     async def update(cat_id: UUID, data: CategoryUpdate, db: AsyncSession):
         service = CategoryService(CategoryRepository(db))
         cat = await service.update(cat_id, data)
-        return await service.get_by_id(cat.id)
-        
+        return await service.get_by_id(cat.id)  # type: ignore
+
     @staticmethod
     async def delete(cat_id: UUID, db: AsyncSession):
         service = CategoryService(CategoryRepository(db))

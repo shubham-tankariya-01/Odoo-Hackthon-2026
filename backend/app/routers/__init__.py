@@ -13,23 +13,24 @@ from app.routers.dashboard import router as dashboard_router
 from app.routers.audits import router as audits_router
 from app.routers.reports import router as reports_router
 
+
 def register_routers(app):
     api_router = APIRouter(prefix="/api/v1")
-    
+
     api_router.include_router(auth_router)
     api_router.include_router(department_router)
     api_router.include_router(user_router)
     api_router.include_router(category_router)
-    
+
     api_router.include_router(asset_router)
     api_router.include_router(allocation_router)
     api_router.include_router(maintenance_router)
     api_router.include_router(transfer_router)
-    
+
     api_router.include_router(bookings_router)
     api_router.include_router(activity_logs_router)
     api_router.include_router(dashboard_router)
     api_router.include_router(audits_router)
     api_router.include_router(reports_router)
-    
+
     app.include_router(api_router)

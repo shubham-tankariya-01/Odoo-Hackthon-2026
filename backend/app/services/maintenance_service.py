@@ -21,7 +21,8 @@ from app.utils.exceptions import (
 
 
 class MaintenanceService:
-    def __init__(self, maint_repo: MaintenanceRepository, asset_repo: AssetRepository):
+    def __init__(self, maint_repo: MaintenanceRepository,
+                 asset_repo: AssetRepository):
         self.maint_repo = maint_repo
         self.asset_repo = asset_repo
 
@@ -55,7 +56,8 @@ class MaintenanceService:
 
     # ── Mutations ─────────────────────────────────────
 
-    async def raise_request(self, data: MaintenanceCreate, raised_by_id: UUID) -> MaintenanceRequest:
+    async def raise_request(self, data: MaintenanceCreate,
+                            raised_by_id: UUID) -> MaintenanceRequest:
         """
         Step 1 per the README: just log the issue — do NOT change asset status yet.
         """
@@ -70,21 +72,24 @@ class MaintenanceService:
         }
         return await self.maint_repo.create(req_in)
 
-    async def approve(self, request_id: UUID, payload: MaintenanceApprove, approved_by_id: UUID) -> MaintenanceRequest:
+    async def approve(self, request_id: UUID, payload: MaintenanceApprove,
+                      approved_by_id: UUID) -> MaintenanceRequest:
         """
         Step 3 per README: only here does the asset flip to 'under_maintenance'.
         """
         req = await self.get_by_id(request_id)
 
         if req.status != MaintenanceStatus.pending:
-            raise ConflictException(f"Cannot approve a request in '{req.status}' status")
+            raise ConflictException(
+                f"Cannot approve a request in '{
+                    req.status}' status")
 
         # Flip asset status via the gate
         from app.services.asset_service import AssetService
         from app.schemas.asset import AssetStatusUpdate
         asset_service = AssetService(self.asset_repo)
         await asset_service.change_status(
-            req.asset_id,
+            req.asset_id,  # type: ignore
             AssetStatusUpdate(status=AssetStatus.under_maintenance),
         )
 
@@ -93,22 +98,28 @@ class MaintenanceService:
             "approved_by_id": approved_by_id,
         })
 
-    async def reject(self, request_id: UUID, payload: MaintenanceReject, rejected_by_id: UUID) -> MaintenanceRequest:
+    async def reject(self, request_id: UUID, payload: MaintenanceReject,
+                     rejected_by_id: UUID) -> MaintenanceRequest:
         req = await self.get_by_id(request_id)
 
         if req.status != MaintenanceStatus.pending:
-            raise ConflictException(f"Cannot reject a request in '{req.status}' status")
+            raise ConflictException(
+                f"Cannot reject a request in '{
+                    req.status}' status")
 
         return await self.maint_repo.update(req, {
             "status": MaintenanceStatus.rejected,
             "resolution_notes": payload.reason,
         })
 
-    async def assign(self, request_id: UUID, payload: MaintenanceAssign) -> MaintenanceRequest:
+    async def assign(self, request_id: UUID,
+                     payload: MaintenanceAssign) -> MaintenanceRequest:
         req = await self.get_by_id(request_id)
 
         if req.status != MaintenanceStatus.approved:
-            raise ConflictException(f"Can only assign a technician to an approved request, current status: '{req.status}'")
+            raise ConflictException(
+                f"Can only assign a technician to an approved request, current status: '{
+                    req.status}'")
 
         return await self.maint_repo.update(req, {
             "status": MaintenanceStatus.assigned,
@@ -119,25 +130,30 @@ class MaintenanceService:
         req = await self.get_by_id(request_id)
 
         if req.status != MaintenanceStatus.assigned:
-            raise ConflictException(f"Cannot start work on a request in '{req.status}' status — must be assigned first")
+            raise ConflictException(
+                f"Cannot start work on a request in '{
+                    req.status}' status — must be assigned first")
 
         return await self.maint_repo.update(req, {"status": MaintenanceStatus.in_progress})
 
-    async def resolve(self, request_id: UUID, payload: MaintenanceResolve) -> MaintenanceRequest:
+    async def resolve(self, request_id: UUID,
+                      payload: MaintenanceResolve) -> MaintenanceRequest:
         """
         Step 5 per README: only here does the asset flip back to 'available'.
         """
         req = await self.get_by_id(request_id)
 
         if req.status != MaintenanceStatus.in_progress:
-            raise ConflictException(f"Cannot resolve a request in '{req.status}' status — must be in_progress first")
+            raise ConflictException(
+                f"Cannot resolve a request in '{
+                    req.status}' status — must be in_progress first")
 
         # Flip asset back to available via the gate
         from app.services.asset_service import AssetService
         from app.schemas.asset import AssetStatusUpdate
         asset_service = AssetService(self.asset_repo)
         await asset_service.change_status(
-            req.asset_id,
+            req.asset_id,  # type: ignore
             AssetStatusUpdate(status=AssetStatus.available),
         )
 

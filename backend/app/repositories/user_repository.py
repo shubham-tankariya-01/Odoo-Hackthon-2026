@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.models.user import User
 from app.repositories.base_repository import BaseRepository
 
+
 class UserRepository(BaseRepository[User]):
     def __init__(self, session: AsyncSession):
         super().__init__(User, session)
@@ -16,8 +17,9 @@ class UserRepository(BaseRepository[User]):
     async def email_exists(self, email: str) -> bool:
         user = await self.get_by_email(email)
         return user is not None
-        
-    async def get_all_with_filters(self, department_id: Optional[uuid.UUID] = None, role: Optional[str] = None, status: Optional[str] = None, skip: int = 0, limit: int = 100):
+
+    async def get_all_with_filters(
+            self, department_id: Optional[uuid.UUID] = None, role: Optional[str] = None, status: Optional[str] = None, skip: int = 0, limit: int = 100):
         query = select(User)
         if department_id:
             query = query.where(User.department_id == department_id)

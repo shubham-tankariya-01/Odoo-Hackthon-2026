@@ -3,14 +3,17 @@ from datetime import datetime
 from uuid import UUID
 from typing import Optional
 
+
 class BookingCreate(BaseModel):
     asset_id: UUID
     start_time: datetime
     end_time: datetime
 
+
 class BookingUpdate(BaseModel):
     start_time: datetime
     end_time: datetime
+
 
 class BookingResponse(BaseModel):
     id: UUID
@@ -22,6 +25,7 @@ class BookingResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AvailabilityResponse(BaseModel):
     asset_id: UUID
     start_time: datetime
@@ -29,12 +33,14 @@ class AvailabilityResponse(BaseModel):
     is_available: bool
     conflicts: list = []
 
+
 class CalendarBookingItem(BaseModel):
     id: UUID
     date: str
     start_time: str
     end_time: str
     status: str
+
 
 class CalendarResponse(BaseModel):
     asset_id: UUID

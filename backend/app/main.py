@@ -5,6 +5,7 @@ from app.middleware.request_logger import RequestLoggerMiddleware
 
 from app.routers import register_routers
 
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="AssetFlow API",
@@ -30,5 +31,6 @@ def create_app() -> FastAPI:
         return {"status": "healthy"}
 
     return app
+
 
 app = create_app()

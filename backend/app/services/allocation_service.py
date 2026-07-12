@@ -15,7 +15,8 @@ from app.utils.exceptions import (
 
 
 class AllocationService:
-    def __init__(self, alloc_repo: AllocationRepository, asset_repo: AssetRepository):
+    def __init__(self, alloc_repo: AllocationRepository,
+                 asset_repo: AssetRepository):
         self.alloc_repo = alloc_repo
         self.asset_repo = asset_repo
 
@@ -50,7 +51,8 @@ class AllocationService:
 
     # ── Mutations ─────────────────────────────────────
 
-    async def allocate(self, data: AllocationCreate, allocated_by_id: UUID) -> Allocation:
+    async def allocate(self, data: AllocationCreate,
+                       allocated_by_id: UUID) -> Allocation:
         # 1. Asset must exist
         asset = await self.asset_repo.get_by_id(data.asset_id)
         if not asset:
@@ -106,7 +108,7 @@ class AllocationService:
         from app.schemas.asset import AssetStatusUpdate
         asset_service = AssetService(self.asset_repo)
         await asset_service.change_status(
-            alloc.asset_id,
+            alloc.asset_id,  # type: ignore
             AssetStatusUpdate(status=AssetStatus.available),
         )
 

@@ -8,6 +8,7 @@ from app.utils.security import decode_token
 from app.utils.exceptions import UnauthorizedException
 from app.config import settings
 
+
 class AuthController:
     @staticmethod
     async def signup(data: SignupRequest, db: AsyncSession):
@@ -31,7 +32,8 @@ class AuthController:
 
     @staticmethod
     async def logout(request: Request):
-        # We would ideally add the token to a blocklist here. For now, it's a no-op on backend.
+        # We would ideally add the token to a blocklist here. For now, it's a
+        # no-op on backend.
         return {"message": "Logged out successfully"}
 
     @staticmethod
@@ -45,9 +47,12 @@ class AuthController:
         payload = decode_token(data.token)
         if not payload or payload.get("role") != "reset":
             raise UnauthorizedException("Invalid or expired reset token")
-        
+
         service = AuthService(UserRepository(db))
-        await service.reset_password(payload.get("sub"), data.new_password)
+        sub = payload.get("sub")
+        if not sub:
+            raise UnauthorizedException("Invalid token payload")
+        await service.reset_password(str(sub), data.new_password)
         return {"message": "Password reset successfully"}
 
     @staticmethod

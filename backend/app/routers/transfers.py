@@ -29,7 +29,10 @@ async def list_transfers(
     current_user=Depends(get_current_user),
 ):
     """List transfer requests with optional filters."""
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     skip = (page - 1) * page_size
     items, total = await service.get_all(
         asset_id=asset_id,
@@ -40,7 +43,8 @@ async def list_transfers(
         limit=page_size,
     )
     pages = max(1, (total + page_size - 1) // page_size)
-    return {"items": items, "total": total, "page": page, "page_size": page_size, "pages": pages}
+    return {"items": items, "total": total, "page": page,
+            "page_size": page_size, "pages": pages}
 
 
 @router.get("/{transfer_id}", response_model=TransferResponse)
@@ -50,11 +54,15 @@ async def get_transfer(
     current_user=Depends(get_current_user),
 ):
     """Get transfer request details by ID."""
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     return await service.get_by_id(transfer_id)
 
 
-@router.post("", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TransferResponse,
+             status_code=status.HTTP_201_CREATED)
 async def request_transfer(
     data: TransferCreate,
     db: AsyncSession = Depends(get_db),
@@ -64,7 +72,10 @@ async def request_transfer(
     Request an asset transfer.
     Can only be done if the asset is currently allocated.
     """
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     return await service.request_transfer(data, requested_by_id=current_user.id)
 
 
@@ -72,13 +83,17 @@ async def request_transfer(
 async def approve_transfer(
     transfer_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
 ):
     """
     Approve transfer request.
     Closes the old allocation and opens a new allocation for the destination user.
     """
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     return await service.approve(transfer_id, approved_by_id=current_user.id)
 
 
@@ -86,10 +101,14 @@ async def approve_transfer(
 async def reject_transfer(
     transfer_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
 ):
     """Reject transfer request."""
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     return await service.reject(transfer_id, approved_by_id=current_user.id)
 
 
@@ -100,5 +119,8 @@ async def cancel_transfer(
     current_user=Depends(get_current_user),
 ):
     """Cancel transfer request. Can only be done by the original requester."""
-    service = TransferService(TransferRepository(db), AllocationRepository(db), AssetRepository(db))
+    service = TransferService(
+        TransferRepository(db),
+        AllocationRepository(db),
+        AssetRepository(db))
     return await service.cancel(transfer_id, user_id=current_user.id)

@@ -11,11 +11,14 @@ class AllocationRepository(BaseRepository[Allocation]):
     def __init__(self, session: AsyncSession):
         super().__init__(Allocation, session)
 
-    async def get_active_by_asset(self, asset_id: uuid.UUID) -> Optional[Allocation]:
+    async def get_active_by_asset(
+            self, asset_id: uuid.UUID) -> Optional[Allocation]:
         """Returns the single active allocation for an asset, or None."""
         result = await self.session.execute(
             select(Allocation).where(
-                and_(Allocation.asset_id == asset_id, Allocation.is_active == True)
+                and_(
+                    Allocation.asset_id == asset_id,
+                    Allocation.is_active == True)
             )
         )
         return result.scalars().first()
@@ -30,7 +33,8 @@ class AllocationRepository(BaseRepository[Allocation]):
         count_result = await self.session.execute(select(func.count()).select_from(query.subquery()))
         total = count_result.scalar() or 0
 
-        query = query.order_by(Allocation.created_at.desc()).offset(skip).limit(limit)
+        query = query.order_by(
+            Allocation.created_at.desc()).offset(skip).limit(limit)
         result = await self.session.execute(query)
         return result.scalars().all(), total
 
@@ -57,7 +61,8 @@ class AllocationRepository(BaseRepository[Allocation]):
         count_result = await self.session.execute(select(func.count()).select_from(query.subquery()))
         total = count_result.scalar() or 0
 
-        query = query.order_by(Allocation.created_at.desc()).offset(skip).limit(limit)
+        query = query.order_by(
+            Allocation.created_at.desc()).offset(skip).limit(limit)
         result = await self.session.execute(query)
         return result.scalars().all(), total
 
@@ -67,7 +72,7 @@ class AllocationRepository(BaseRepository[Allocation]):
             select(Allocation).where(
                 and_(
                     Allocation.is_active == True,
-                    Allocation.expected_return_date != None,
+                    Allocation.expected_return_date.isnot(None),
                     Allocation.expected_return_date < today,
                 )
             ).order_by(Allocation.expected_return_date)

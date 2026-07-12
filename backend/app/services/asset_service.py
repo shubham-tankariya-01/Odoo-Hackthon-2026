@@ -84,7 +84,8 @@ class AssetService:
 
         return await self.repo.update(asset, update_dict)
 
-    async def change_status(self, asset_id: UUID, payload: AssetStatusUpdate) -> Asset:
+    async def change_status(self, asset_id: UUID,
+                            payload: AssetStatusUpdate) -> Asset:
         """
         Central state-machine gate.
         Every other module (allocations, maintenance, transfers) must call

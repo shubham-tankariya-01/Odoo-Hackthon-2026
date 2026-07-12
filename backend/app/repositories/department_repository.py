@@ -6,6 +6,7 @@ from app.models.department import Department
 from app.models.user import User
 from app.repositories.base_repository import BaseRepository
 
+
 class DepartmentRepository(BaseRepository[Department]):
     def __init__(self, session: AsyncSession):
         super().__init__(Department, session)
@@ -20,6 +21,10 @@ class DepartmentRepository(BaseRepository[Department]):
 
     async def get_member_count(self, department_id: uuid.UUID) -> int:
         result = await self.session.execute(
-            select(func.count(User.id)).where(User.department_id == department_id, User.status == "active")
+            select(
+                func.count(
+                    User.id)).where(
+                User.department_id == department_id,
+                User.status == "active")
         )
         return result.scalar() or 0

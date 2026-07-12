@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class DashboardKPIs(BaseModel):
     assets_available: int
     assets_allocated: int
@@ -10,6 +11,7 @@ class DashboardKPIs(BaseModel):
     upcoming_returns: int
     overdue_returns: int
 
+
 class DashboardReturnItem(BaseModel):
     allocation_id: str
     asset_tag: str
@@ -18,6 +20,7 @@ class DashboardReturnItem(BaseModel):
     expected_return_date: str
     days_overdue: Optional[int] = None
     days_until_due: Optional[int] = None
+
 
 class DashboardResponse(BaseModel):
     kpis: DashboardKPIs

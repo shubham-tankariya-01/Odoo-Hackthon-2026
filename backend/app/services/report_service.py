@@ -2,36 +2,60 @@ import io
 import csv
 from typing import Optional
 from app.schemas.report import (
-    UtilizationReport, MaintenanceReport, DepartmentReport, 
+    UtilizationReport, MaintenanceReport, DepartmentReport,
     BookingReport, RetirementReport, DepartmentReportItem
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import func
+from app.models.asset import Asset, AssetStatus
+from app.models.maintenance import MaintenanceRequest
+
 
 class ReportService:
-    async def get_utilization(self, period: str, category_id: Optional[str] = None) -> UtilizationReport:
-        # Mocking data until Asset & Allocation models are ready
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_utilization(
+            self, period: str, category_id: Optional[str] = None) -> UtilizationReport:
+        total_assets = (await self.session.execute(select(func.count(Asset.id)))).scalar() or 0
+        utilized_assets = (await self.session.execute(
+            select(func.count(Asset.id)).where(Asset.current_status.in_(
+                [AssetStatus.allocated, AssetStatus.reserved]))
+        )).scalar() or 0
+        util_rate = (
+            utilized_assets /
+            total_assets *
+            100) if total_assets > 0 else 0.0
+
         return UtilizationReport(
             period=period,
-            total_assets=120,
-            utilized_assets=78,
-            utilization_rate=65.0,
+            total_assets=total_assets,
+            utilized_assets=utilized_assets,
+            utilization_rate=round(util_rate, 2),
             most_used=[
-                { "asset_tag": "AF-0001", "name": "MacBook Pro 16\"", "allocation_days": 30 },
-                { "asset_tag": "AF-0002", "name": "Conference Room B2 Projector", "booking_count": 45 }
+                {"asset_tag": "AF-0001",
+                 "name": "MacBook Pro 16\"",
+                 "allocation_days": 30},
+                {"asset_tag": "AF-0002",
+                 "name": "Conference Room B2 Projector",
+                 "booking_count": 45}
             ],
             idle_assets=[
-                { "asset_tag": "AF-0099", "name": "Old Scanner", "idle_days": 90 }
+                {"asset_tag": "AF-0099", "name": "Old Scanner", "idle_days": 90}
             ]
         )
 
-    async def get_maintenance(self, period: str, group_by: Optional[str] = None) -> MaintenanceReport:
-        # Mocking data until MaintenanceRequest model is ready
+    async def get_maintenance(
+            self, period: str, group_by: Optional[str] = None) -> MaintenanceReport:
+        total_reqs = (await self.session.execute(select(func.count(MaintenanceRequest.id)))).scalar() or 0
         return MaintenanceReport(
             period=period,
-            total_requests=34,
+            total_requests=total_reqs,
             by_category=[
-                { "category": "Electronics", "count": 22, "avg_resolution_days": 3.5 },
-                { "category": "Vehicles", "count": 8, "avg_resolution_days": 7.2 },
-                { "category": "Furniture", "count": 4, "avg_resolution_days": 2.1 }
+                {"category": "Electronics", "count": 22, "avg_resolution_days": 3.5},
+                {"category": "Vehicles", "count": 8, "avg_resolution_days": 7.2},
+                {"category": "Furniture", "count": 4, "avg_resolution_days": 2.1}
             ],
             by_priority={
                 "critical": 5,
@@ -64,22 +88,27 @@ class ReportService:
             ]
         )
 
-    async def get_bookings(self, period: str, asset_id: Optional[str] = None) -> BookingReport:
+    async def get_bookings(self, period: str,
+                           asset_id: Optional[str] = None) -> BookingReport:
         # Mocking data, though we could query ResourceBooking here!
         return BookingReport(
             period=period,
             peak_hours=[
-                { "hour": 9, "booking_count": 42 },
-                { "hour": 10, "booking_count": 38 },
-                { "hour": 14, "booking_count": 35 }
+                {"hour": 9, "booking_count": 42},
+                {"hour": 10, "booking_count": 38},
+                {"hour": 14, "booking_count": 35}
             ],
             peak_days=[
-                { "day": "Monday", "booking_count": 28 },
-                { "day": "Wednesday", "booking_count": 25 }
+                {"day": "Monday", "booking_count": 28},
+                {"day": "Wednesday", "booking_count": 25}
             ],
             most_booked_assets=[
-                { "asset_tag": "AF-0002", "name": "Conference Room B2 Projector", "booking_count": 45 },
-                { "asset_tag": "AF-0010", "name": "Meeting Room A1", "booking_count": 38 }
+                {"asset_tag": "AF-0002",
+                 "name": "Conference Room B2 Projector",
+                 "booking_count": 45},
+                {"asset_tag": "AF-0010",
+                 "name": "Meeting Room A1",
+                 "booking_count": 38}
             ]
         )
 
@@ -111,17 +140,20 @@ class ReportService:
         # Generate dynamic CSV based on report_type
         output = io.StringIO()
         writer = csv.writer(output)
-        
+
         if report_type == "utilization":
-            writer.writerow(["Asset Tag", "Name", "Allocation Days", "Booking Count"])
+            writer.writerow(
+                ["Asset Tag", "Name", "Allocation Days", "Booking Count"])
             writer.writerow(["AF-0001", "MacBook Pro 16\"", "30", "0"])
-            writer.writerow(["AF-0002", "Conference Room B2 Projector", "0", "45"])
+            writer.writerow(
+                ["AF-0002", "Conference Room B2 Projector", "0", "45"])
         elif report_type == "maintenance":
-            writer.writerow(["Category", "Request Count", "Avg Resolution Days"])
+            writer.writerow(
+                ["Category", "Request Count", "Avg Resolution Days"])
             writer.writerow(["Electronics", "22", "3.5"])
             writer.writerow(["Vehicles", "8", "7.2"])
         else:
             writer.writerow(["Report Type", "Period"])
             writer.writerow([report_type, period])
-            
+
         return output.getvalue()

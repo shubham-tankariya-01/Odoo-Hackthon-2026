@@ -38,13 +38,15 @@ async def list_allocations(
         limit=page_size,
     )
     pages = max(1, (total + page_size - 1) // page_size)
-    return {"items": items, "total": total, "page": page, "page_size": page_size, "pages": pages}
+    return {"items": items, "total": total, "page": page,
+            "page_size": page_size, "pages": pages}
 
 
 @router.get("/overdue", response_model=list[AllocationResponse])
 async def get_overdue_allocations(
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """List all active allocations past their expected return date."""
     service = AllocationService(AllocationRepository(db), AssetRepository(db))
@@ -62,11 +64,13 @@ async def get_allocation(
     return await service.get_by_id(alloc_id)
 
 
-@router.post("", response_model=AllocationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=AllocationResponse,
+             status_code=status.HTTP_201_CREATED)
 async def allocate_asset(
     data: AllocationCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN, UserRole.DEPARTMENT_HEAD])),
 ):
     """Allocate an asset to an employee. Asset must be 'available'."""
     service = AllocationService(AllocationRepository(db), AssetRepository(db))
@@ -78,7 +82,8 @@ async def return_asset(
     alloc_id: UUID,
     payload: AllocationReturn,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Mark an allocation as returned. Asset status reverts to 'available'."""
     service = AllocationService(AllocationRepository(db), AssetRepository(db))

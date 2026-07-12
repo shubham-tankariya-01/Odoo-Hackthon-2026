@@ -35,6 +35,7 @@ class TransferRepository(BaseRepository[Transfer]):
         )
         total = count_result.scalar() or 0
 
-        query = query.order_by(Transfer.created_at.desc()).offset(skip).limit(limit)
+        query = query.order_by(Transfer.created_at.desc()
+                               ).offset(skip).limit(limit)
         result = await self.session.execute(query)
         return result.scalars().all(), total

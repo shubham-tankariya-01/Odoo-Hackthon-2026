@@ -4,6 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 from app.models.activity_log import ActivityLog
 
+
 class ActivityLogRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -35,7 +36,7 @@ class ActivityLogRepository:
         return result.scalars().first()
 
     async def mark_as_read(self, log: ActivityLog) -> ActivityLog:
-        log.is_read = True
+        log.is_read = True  # type: ignore
         await self.session.commit()
         await self.session.refresh(log)
         return log

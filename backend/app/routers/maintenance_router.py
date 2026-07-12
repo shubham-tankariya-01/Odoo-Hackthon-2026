@@ -36,7 +36,9 @@ async def list_maintenance(
     current_user=Depends(get_current_user),
 ):
     """List all maintenance requests with optional filters."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     skip = (page - 1) * page_size
     items, total = await service.get_all(
         asset_id=asset_id,
@@ -48,7 +50,8 @@ async def list_maintenance(
         limit=page_size,
     )
     pages = max(1, (total + page_size - 1) // page_size)
-    return {"items": items, "total": total, "page": page, "page_size": page_size, "pages": pages}
+    return {"items": items, "total": total, "page": page,
+            "page_size": page_size, "pages": pages}
 
 
 @router.get("/{request_id}", response_model=MaintenanceResponse)
@@ -58,11 +61,14 @@ async def get_maintenance(
     current_user=Depends(get_current_user),
 ):
     """Get maintenance request detail."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.get_by_id(request_id)
 
 
-@router.post("", response_model=MaintenanceResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=MaintenanceResponse,
+             status_code=status.HTTP_201_CREATED)
 async def raise_maintenance(
     data: MaintenanceCreate,
     db: AsyncSession = Depends(get_db),
@@ -72,7 +78,9 @@ async def raise_maintenance(
     Raise a maintenance request. Does NOT change asset status —
     the asset only goes under_maintenance after approval.
     """
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.raise_request(data, raised_by_id=current_user.id)
 
 
@@ -81,10 +89,13 @@ async def approve_maintenance(
     request_id: UUID,
     payload: MaintenanceApprove,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Approve a pending request — asset status flips to 'under_maintenance'."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.approve(request_id, payload, approved_by_id=current_user.id)
 
 
@@ -93,10 +104,13 @@ async def reject_maintenance(
     request_id: UUID,
     payload: MaintenanceReject,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Reject a pending request. Asset status is not changed."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.reject(request_id, payload, rejected_by_id=current_user.id)
 
 
@@ -105,10 +119,13 @@ async def assign_technician(
     request_id: UUID,
     payload: MaintenanceAssign,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Assign a technician to an approved request."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.assign(request_id, payload)
 
 
@@ -116,10 +133,13 @@ async def assign_technician(
 async def start_maintenance(
     request_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Mark maintenance as in-progress. Must be assigned first."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.start(request_id)
 
 
@@ -128,8 +148,11 @@ async def resolve_maintenance(
     request_id: UUID,
     payload: MaintenanceResolve,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Resolve maintenance — asset status flips back to 'available'."""
-    service = MaintenanceService(MaintenanceRepository(db), AssetRepository(db))
+    service = MaintenanceService(
+        MaintenanceRepository(db),
+        AssetRepository(db))
     return await service.resolve(request_id, payload)

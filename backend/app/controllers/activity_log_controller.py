@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from app.services.activity_log_service import ActivityLogService
 
+
 class ActivityLogController:
     @staticmethod
     async def get_audit_trail(db: AsyncSession):
@@ -15,7 +16,8 @@ class ActivityLogController:
         return await service.get_user_notifications(user_id)
 
     @staticmethod
-    async def mark_notification_read(notification_id: UUID, user_id: UUID, db: AsyncSession):
+    async def mark_notification_read(
+            notification_id: UUID, user_id: UUID, db: AsyncSession):
         service = ActivityLogService(db)
         try:
             return await service.mark_notification_read(notification_id, user_id)

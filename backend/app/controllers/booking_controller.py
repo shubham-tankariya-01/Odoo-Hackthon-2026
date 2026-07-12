@@ -4,9 +4,11 @@ from uuid import UUID
 from app.schemas.booking import BookingCreate
 from app.services.booking_service import BookingService, BookingOverlapError
 
+
 class BookingController:
     @staticmethod
-    async def create_booking(booking_in: BookingCreate, user_id: UUID, db: AsyncSession):
+    async def create_booking(booking_in: BookingCreate,
+                             user_id: UUID, db: AsyncSession):
         service = BookingService(db)
         try:
             return await service.create_booking(booking_in, user_id)
@@ -21,7 +23,8 @@ class BookingController:
         return await service.list_bookings()
 
     @staticmethod
-    async def cancel_booking(booking_id: UUID, user_id: UUID, db: AsyncSession):
+    async def cancel_booking(
+            booking_id: UUID, user_id: UUID, db: AsyncSession):
         service = BookingService(db)
         try:
             return await service.cancel_booking(booking_id, user_id)
@@ -39,7 +42,8 @@ class BookingController:
             raise HTTPException(status_code=404, detail=str(e))
 
     @staticmethod
-    async def reschedule_booking(booking_id: UUID, user_id: UUID, booking_update, db: AsyncSession):
+    async def reschedule_booking(
+            booking_id: UUID, user_id: UUID, booking_update, db: AsyncSession):
         service = BookingService(db)
         try:
             return await service.reschedule_booking(booking_id, user_id, booking_update.start_time, booking_update.end_time)
@@ -57,10 +61,13 @@ class BookingController:
             year_int, month_int = map(int, month.split('-'))
             return await service.get_calendar(asset_id, year_int, month_int)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid month format, expected YYYY-MM")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid month format, expected YYYY-MM")
 
     @staticmethod
-    async def check_availability(asset_id: UUID, start: str, end: str, db: AsyncSession):
+    async def check_availability(
+            asset_id: UUID, start: str, end: str, db: AsyncSession):
         from datetime import datetime
         service = BookingService(db)
         try:

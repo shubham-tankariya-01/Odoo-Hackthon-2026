@@ -5,6 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 from app.models.audit import AuditCycle, AuditFinding
 
+
 class AuditRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

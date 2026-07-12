@@ -42,7 +42,8 @@ async def list_assets(
         limit=page_size,
     )
     pages = max(1, (total + page_size - 1) // page_size)
-    return {"items": items, "total": total, "page": page, "page_size": page_size, "pages": pages}
+    return {"items": items, "total": total, "page": page,
+            "page_size": page_size, "pages": pages}
 
 
 @router.get("/{asset_id}", response_model=AssetResponse)
@@ -56,11 +57,13 @@ async def get_asset(
     return await service.get_by_id(asset_id)
 
 
-@router.post("", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=AssetResponse,
+             status_code=status.HTTP_201_CREATED)
 async def create_asset(
     data: AssetCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Register a new asset. asset_tag is auto-generated (AF-XXXX)."""
     service = AssetService(AssetRepository(db))
@@ -72,7 +75,8 @@ async def update_asset(
     asset_id: UUID,
     data: AssetUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Update asset details (name, serial, category, bookable, custom_fields)."""
     service = AssetService(AssetRepository(db))
@@ -84,7 +88,8 @@ async def change_asset_status(
     asset_id: UUID,
     payload: AssetStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_role([UserRole.ASSET_MANAGER, UserRole.ADMIN])),
+    current_user=Depends(require_role(
+        [UserRole.ASSET_MANAGER, UserRole.ADMIN])),
 ):
     """Change asset status — validated against the state machine."""
     service = AssetService(AssetRepository(db))
