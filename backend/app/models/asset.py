@@ -55,5 +55,6 @@ class Asset(BaseModel):
     custom_fields  = Column(JSONB,       default=dict,  nullable=False)
 
     # Relationships
-    category    = relationship("AssetCategory", back_populates="assets")
-    allocations = relationship("Allocation",    back_populates="asset")
+    category             = relationship("AssetCategory",      back_populates="assets")
+    allocations          = relationship("Allocation",         back_populates="asset")
+    maintenance_requests = relationship("MaintenanceRequest", back_populates="asset")
