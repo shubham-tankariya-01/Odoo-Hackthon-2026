@@ -13,111 +13,98 @@ This plan covers **backend only** using **Python + FastAPI**.
 | Layer | Choice | Rationale |
 |---|---|---|
 | Framework | **FastAPI** | Async, auto-docs (Swagger/ReDoc), Pydantic validation |
-| Data Storage | **In-memory dicts** (DB-ready later) | Fast hackathon iteration; swap to SQLAlchemy + PostgreSQL later |
+| Database | **PostgreSQL** | Relational, strong for ERP with complex joins & constraints |
+| ORM | **SQLAlchemy 2.0** (async) | Mature, supports complex relationships |
+| Migrations | **Alembic** | Standard SQLAlchemy migration tool |
 | Auth | **JWT** (python-jose) + **bcrypt** (passlib) | Stateless auth, secure password hashing |
 | Validation | **Pydantic v2** | Built into FastAPI, fast, type-safe |
 | File Storage | Local filesystem (dev) / S3-compatible (prod) | For asset photos, documents, attachments |
 | Task Queue | **None for MVP** (future: Celery/ARQ) | Booking reminders & overdue checks can be cron-based initially |
 | Testing | **pytest** + **httpx** (AsyncClient) | Standard FastAPI testing stack |
 
-> [!NOTE]
-> **Database excluded for now.** The architecture uses in-memory dict-based stores behind a clean service layer. When ready to integrate a database (PostgreSQL + SQLAlchemy 2.0 + Alembic), you only need to add a `repositories/` layer and swap the service implementations — no router or schema changes needed.
-
 ---
 
-## Project Structure
+## Project Structure (MVC)
+
+```
+M = Models     → SQLAlchemy ORM models (database tables)
+V = Views      → Pydantic schemas (request/response shapes)
+C = Controllers → FastAPI route handlers (endpoints + business logic)
+```
 
 ```
 backend/
+├── alembic/                        # DB migrations
+│   ├── versions/
+│   └── env.py
+├── alembic.ini
+│
 ├── app/
 │   ├── __init__.py
-│   ├── main.py                 # FastAPI app entry point
-│   ├── config.py               # Settings via pydantic-settings
+│   ├── main.py                     # FastAPI app entry, CORS, router registration
+│   ├── config.py                   # Settings via pydantic-settings
+│   ├── database.py                 # SQLAlchemy engine, session, Base
 │   │
-│   ├── models/                 # Pydantic data models (not ORM)
-│   │   ├── __init__.py
-│   │   ├── user.py             # User (login credentials)
-│   │   ├── employee.py         # Employee profile
-│   │   ├── department.py
-│   │   ├── asset_category.py
-│   │   ├── asset.py
-│   │   ├── allocation.py
-│   │   ├── transfer.py
-│   │   ├── booking.py
-│   │   ├── maintenance.py
-│   │   ├── audit.py
-│   │   ├── notification.py
-│   │   └── activity_log.py
+│   ├── models/                     # M — SQLAlchemy ORM models (1 file per table)
+│   │   ├── __init__.py             # Exports Base + all models
+│   │   ├── user.py                 # Users table
+│   │   ├── department.py           # Departments table
+│   │   ├── asset_category.py       # Asset Categories table
+│   │   ├── asset.py                # Assets table
+│   │   ├── allocation.py           # Asset Allocations table
+│   │   ├── booking.py              # Resource Bookings table
+│   │   ├── maintenance.py          # Maintenance Requests table
+│   │   ├── audit_cycle.py          # Audit Cycles table
+│   │   ├── audit_finding.py        # Audit Findings table
+│   │   └── activity_log.py         # Activity Logs table (+ notifications)
 │   │
-│   ├── store/                  # In-memory data stores
+│   ├── views/                      # V — Pydantic schemas (request/response)
 │   │   ├── __init__.py
-│   │   └── memory_store.py     # Dict-based storage for all entities
+│   │   ├── auth.py                 # LoginRequest, SignupRequest, TokenResponse
+│   │   ├── user.py                 # UserCreate, UserUpdate, UserResponse
+│   │   ├── department.py           # DepartmentCreate, DepartmentUpdate, DepartmentResponse
+│   │   ├── asset_category.py       # CategoryCreate, CategoryResponse
+│   │   ├── asset.py                # AssetCreate, AssetUpdate, AssetResponse, AssetHistory
+│   │   ├── allocation.py           # AllocationCreate, TransferRequest, AllocationResponse
+│   │   ├── booking.py              # BookingCreate, BookingUpdate, BookingResponse, CalendarView
+│   │   ├── maintenance.py          # MaintenanceCreate, MaintenanceResponse
+│   │   ├── audit.py                # AuditCreate, FindingCreate, DiscrepancyReport
+│   │   ├── activity_log.py         # ActivityLogResponse, NotificationResponse
+│   │   ├── dashboard.py            # DashboardKPIs, OverdueReturn
+│   │   └── common.py               # PaginatedResponse, ErrorResponse
 │   │
-│   ├── schemas/                # Pydantic request/response schemas
+│   ├── controllers/                # C — FastAPI APIRouters (routes + business logic)
 │   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── employee.py
-│   │   ├── department.py
-│   │   ├── asset_category.py
-│   │   ├── asset.py
-│   │   ├── allocation.py
-│   │   ├── transfer.py
-│   │   ├── booking.py
-│   │   ├── maintenance.py
-│   │   ├── audit.py
-│   │   ├── notification.py
-│   │   ├── activity_log.py
-│   │   └── dashboard.py
-│   │
-│   ├── routers/                # FastAPI APIRouters (controller layer)
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── dashboard.py
-│   │   ├── departments.py
-│   │   ├── categories.py
-│   │   ├── employees.py
-│   │   ├── assets.py
-│   │   ├── allocations.py
-│   │   ├── transfers.py
-│   │   ├── bookings.py
-│   │   ├── maintenance.py
-│   │   ├── audits.py
-│   │   ├── reports.py
-│   │   ├── notifications.py
-│   │   └── activity_logs.py
-│   │
-│   ├── services/               # Business logic layer
-│   │   ├── __init__.py
-│   │   ├── auth_service.py
-│   │   ├── department_service.py
-│   │   ├── employee_service.py
-│   │   ├── asset_service.py
-│   │   ├── allocation_service.py
-│   │   ├── transfer_service.py
-│   │   ├── booking_service.py
-│   │   ├── maintenance_service.py
-│   │   ├── audit_service.py
-│   │   ├── dashboard_service.py
-│   │   ├── report_service.py
-│   │   ├── notification_service.py
-│   │   └── activity_log_service.py
+│   │   ├── auth_controller.py      # signup, login, logout, forgot/reset password, me
+│   │   ├── dashboard_controller.py # KPI aggregation
+│   │   ├── department_controller.py# CRUD + deactivate
+│   │   ├── category_controller.py  # CRUD + delete guard
+│   │   ├── user_controller.py      # list, detail, update, promote role, toggle status
+│   │   ├── asset_controller.py     # CRUD + search + history + QR
+│   │   ├── allocation_controller.py# allocate, return, overdue, transfer request/approve/reject
+│   │   ├── booking_controller.py   # CRUD + overlap validation + calendar + availability
+│   │   ├── maintenance_controller.py # raise, approve, reject, assign, start, resolve
+│   │   ├── audit_controller.py     # cycle CRUD + close + findings + discrepancy report
+│   │   ├── report_controller.py    # utilization, maintenance, dept, bookings, retirement, export
+│   │   └── activity_log_controller.py # logs list/detail + notifications list/read/read-all
 │   │
 │   ├── middleware/
 │   │   ├── __init__.py
-│   │   └── request_logger.py   # Log every request for activity tracking
+│   │   └── request_logger.py       # Auto-log all API requests
 │   │
-│   ├── dependencies/           # FastAPI Depends() functions
+│   ├── dependencies/               # FastAPI Depends() functions
 │   │   ├── __init__.py
-│   │   └── auth.py             # get_current_user, require_role()
+│   │   ├── auth.py                 # get_current_user, require_role()
+│   │   └── database.py             # get_db session dependency
 │   │
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   ├── security.py         # JWT encode/decode, password hashing
-│   │   ├── asset_tag.py        # Auto-generate AF-XXXX tags
-│   │   ├── qr_generator.py     # QR code generation
-│   │   └── exceptions.py       # Custom HTTP exceptions
+│   │   ├── security.py             # JWT encode/decode, password hashing
+│   │   ├── asset_tag.py            # Auto-generate AF-XXXX tags
+│   │   ├── qr_generator.py         # QR code generation
+│   │   └── exceptions.py           # Custom HTTP exceptions
 │   │
-│   └── uploads/                # Local file upload directory (dev)
+│   └── uploads/                    # Local file upload directory (dev)
 │
 ├── tests/
 │   ├── conftest.py
@@ -582,33 +569,36 @@ The `ActivityLogService.log_action()` is called from every service method to rec
 Core dependencies: `fastapi`, `uvicorn[standard]`, `sqlalchemy[asyncio]`, `asyncpg`, `alembic`, `pydantic-settings`, `python-jose[cryptography]`, `passlib[bcrypt]`, `python-multipart`, `qrcode[pil]`, `httpx`, `pytest`, `pytest-asyncio`.
 
 #### [NEW] [.env.example](file:///e:/Coding/Hackthon_Projects/Odoo-Hackthon-2026/backend/.env.example)
-Template for environment variables: `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, etc.
+Template for environment variables: `DATABASE_URL`, `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, etc.
 
 #### [NEW] [main.py](file:///e:/Coding/Hackthon_Projects/Odoo-Hackthon-2026/backend/app/main.py)
-FastAPI app initialization, CORS middleware, router inclusion, global exception handlers.
+FastAPI app initialization, CORS middleware, controller registration, global exception handlers.
 
 #### [NEW] [config.py](file:///e:/Coding/Hackthon_Projects/Odoo-Hackthon-2026/backend/app/config.py)
 `pydantic-settings` based configuration loading from `.env`.
 
+#### [NEW] [database.py](file:///e:/Coding/Hackthon_Projects/Odoo-Hackthon-2026/backend/app/database.py)
+Async SQLAlchemy engine + `AsyncSession` factory + `Base` declarative class.
+
 ---
 
-### Models Layer (12 files)
-Pydantic `BaseModel` classes defining the data shape of each entity. These are **not** ORM models — they're pure data classes used by the in-memory store and as the basis for schemas.
+### M — Models Layer (10 files)
+SQLAlchemy ORM models mapping directly to the 10 PostgreSQL tables from `schema.md`. Each model defines columns, relationships, and constraints. All models inherit from a shared `Base`.
 
-### Schemas Layer (13 files)
-Pydantic v2 schemas for request validation and response serialization. `Create`/`Update`/`Response` variants per entity.
+### V — Views Layer (12 files)
+Pydantic v2 schemas for request validation and response serialization. Each module has `Create`, `Update`, and `Response` variants. `common.py` provides shared `PaginatedResponse` and `ErrorResponse` schemas.
 
-### Store Layer (1 file)
-`store/memory_store.py` — A singleton `MemoryStore` class with typed dicts for each entity (`Dict[UUID, Model]`). Provides basic CRUD helpers. Designed to be swappable with a repository/DB layer later.
-
-### Services Layer (13 files)
-Business logic, state machine enforcement, conflict validation, notification triggering, activity logging. Services read/write from the in-memory store.
-
-### Routers Layer (14 files)
-Thin controller layer — parse request, call service, return response. Role-based access via `Depends(require_role(...))`.
+### C — Controllers Layer (12 files)
+FastAPI `APIRouter` handlers that contain **both** route definitions and business logic. Each controller:
+- Receives validated request via Pydantic schemas (Views)
+- Queries/mutates the database via SQLAlchemy models (Models)
+- Applies business rules (conflict checks, state machine transitions, overlap validation)
+- Returns structured responses via Pydantic schemas (Views)
+- Uses `Depends(require_role(...))` for role-based access
 
 ### Dependencies & Middleware
 - `dependencies/auth.py` — `get_current_user`, `require_role`
+- `dependencies/database.py` — `get_db` async session
 - `middleware/request_logger.py` — auto-log all API requests
 
 ### Utilities
@@ -622,33 +612,25 @@ Thin controller layer — parse request, call service, return response. Role-bas
 ## Development Order (Aligned with Roadmap Priority)
 
 ### Phase 1 — Foundation (Must Have)
-1. Project setup: `requirements.txt`, `.env`, `config.py`, `main.py`
-2. Pydantic data models + in-memory store
-3. Auth module (signup, login, JWT, me)
-4. Dependencies & middleware (auth, role-check)
-5. Organization module (departments, categories, employees, role promotion)
-6. Asset CRUD + search + auto-tag generation
-7. Allocation module (allocate, return, conflict blocking, overdue detection)
-8. Transfer workflow (request → approve/reject → re-allocate)
-9. Maintenance workflow (raise → approve → assign → start → resolve)
-10. Dashboard KPIs
+1. Project setup: `requirements.txt`, `.env`, `config.py`, `database.py`, `main.py`
+2. SQLAlchemy models + Alembic initial migration
+3. Auth controller (signup, login, JWT, me)
+4. Dependencies & middleware (auth, role-check, DB session)
+5. Organization controllers (departments, categories, users, role promotion)
+6. Asset controller (CRUD + search + auto-tag generation)
+7. Allocation controller (allocate, return, conflict blocking, overdue, transfer workflow)
+8. Maintenance controller (raise → approve → assign → start → resolve)
+9. Dashboard controller (KPIs)
 
 ### Phase 2 — Should Have
-11. Resource booking (create, overlap validation, calendar, availability)
-12. Notifications (creation from all services, list, mark read)
-13. Reports (utilization, maintenance, department, booking heatmap)
+10. Booking controller (create, overlap validation, calendar, availability)
+11. Activity log controller (notifications list/read + admin audit trail)
+12. Report controller (utilization, maintenance, department, booking heatmap)
 
 ### Phase 3 — Nice to Have
-14. QR code generation
-15. Audit cycles (create, assign auditors, verify, close, discrepancy report)
-16. Activity logs (full audit trail)
-17. Report export (CSV/PDF)
-
-### Phase 4 — Database Integration (Post-Hackathon)
-18. Add PostgreSQL + SQLAlchemy 2.0 + Alembic
-19. Create ORM models from existing Pydantic data models
-20. Add `repositories/` layer with async DB queries
-21. Swap service layer to use repositories instead of in-memory store
+13. QR code generation
+14. Audit controller (cycles, findings, close, discrepancy report)
+15. Report export (CSV/PDF)
 
 ---
 
