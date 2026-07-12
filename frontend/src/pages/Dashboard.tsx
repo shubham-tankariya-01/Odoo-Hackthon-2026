@@ -5,12 +5,12 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 
 export const Dashboard = () => {
   const overviewData = [
-    { name: 'Available', value: 128, color: '#6750A4' }, // md-primary
-    { name: 'Allocated', value: 35, color: '#7D5260' },  // md-tertiary
-    { name: 'Maintenance', value: 8, color: '#d97706' }, // amber-600
-    { name: 'Active Bookings', value: 4, color: '#2563eb' }, // blue-600
-    { name: 'Pending Transfers', value: 3, color: '#9333ea' }, // purple-600
-    { name: 'Upcoming Returns', value: 12, color: '#16a34a' }, // green-600
+    { name: 'Available', value: 128, color: '#4ADE80' }, // Vibrant Green
+    { name: 'Allocated', value: 35, color: '#FACC15' },  // Vibrant Yellow
+    { name: 'Maintenance', value: 8, color: '#F87171' }, // Vibrant Red
+    { name: 'Active Bookings', value: 4, color: '#60A5FA' }, // Vibrant Blue
+    { name: 'Pending Transfers', value: 3, color: '#C084FC' }, // Vibrant Purple
+    { name: 'Upcoming Returns', value: 12, color: '#2DD4BF' }, // Vibrant Teal
   ];
 
   return (
@@ -30,47 +30,64 @@ export const Dashboard = () => {
         {/* Left Side: 6 Tiles */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {overviewData.map((stat, i) => (
-            <Card key={i} className="flex flex-col group relative overflow-hidden p-5">
+            <Card key={i} className="flex flex-col group relative overflow-hidden p-5 bg-md-surface-container-high border border-md-outline/10 hover:border-md-primary/30 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
               <div 
-                className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-colors duration-500 opacity-10 group-hover:opacity-20"
+                className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-all duration-500 opacity-10 group-hover:opacity-30 group-hover:scale-110"
                 style={{ backgroundColor: stat.color }}
               />
-              <span className="text-md-on-surface-variant font-medium text-sm">{stat.name}</span>
+              <span className="text-md-on-surface-variant font-medium text-sm group-hover:text-md-on-surface transition-colors">{stat.name}</span>
               <span className="text-4xl font-bold mt-2" style={{ color: stat.color }}>{stat.value}</span>
             </Card>
           ))}
         </div>
 
         {/* Right Side: Pie Chart */}
-        <Card className="lg:col-span-1 flex flex-col items-center justify-center min-h-[300px] p-4">
-          <h3 className="font-bold text-md-on-surface mb-2 self-start px-4">Distribution</h3>
-          <div className="w-full flex-1">
+        <Card className="lg:col-span-1 flex flex-col items-center justify-center min-h-[350px] p-5 border-none bg-[#342B59] shadow-md rounded-3xl">
+          <h3 className="font-extrabold text-white mb-2 self-start px-2 text-2xl tracking-tight">Distribution</h3>
+          <div className="w-full flex-1 mt-2">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={overviewData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={0}
                   dataKey="value"
-                  stroke="none"
+                  stroke="#FFFFFF"
+                  strokeWidth={2}
                 >
                   {overviewData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity cursor-pointer" />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    borderRadius: '16px', 
-                    border: 'none',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                    backgroundColor: '#F3EDF7',
-                    color: '#1C1B1F',
-                    fontWeight: '500'
+                    borderRadius: '12px', 
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)',
+                    backgroundColor: '#1C1B1F',
+                    color: '#FFF',
+                    fontWeight: '500',
+                    padding: '8px 12px'
                   }}
-                  itemStyle={{ color: '#1C1B1F' }}
+                  itemStyle={{ color: '#FFF', fontSize: '13px' }}
+                />
+                <Legend 
+                  content={({ payload }) => (
+                    <ul className="grid grid-cols-2 gap-x-1 gap-y-2 mt-4 text-xs w-full px-1">
+                      {payload?.map((entry, index) => (
+                        <li key={`item-${index}`} className="flex items-center gap-1.5">
+                          <span 
+                            className="w-3 h-3 rounded-sm shrink-0" 
+                            style={{ backgroundColor: entry.color }} 
+                          />
+                          <span className="text-white/90 font-medium truncate">{entry.value}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 />
               </PieChart>
             </ResponsiveContainer>
