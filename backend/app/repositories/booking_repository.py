@@ -43,3 +43,37 @@ class BookingRepository:
         await self.session.commit()
         await self.session.refresh(booking)
         return booking
+
+    async def get_conflicting_bookings(self, asset_id: UUID, new_start, new_end, exclude_booking_id: Optional[UUID] = None) -> List[ResourceBooking]:
+        stmt = select(ResourceBooking).where(
+            and_(
+                ResourceBooking.asset_id == asset_id,
+                ResourceBooking.status.in_(["upcoming", "ongoing"]),
+                ResourceBooking.start_time < new_end,
+                ResourceBooking.end_time > new_start
+            )
+        )
+        if exclude_booking_id:
+            stmt = stmt.where(ResourceBooking.id != exclude_booking_id)
+        
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_by_asset_and_month(self, asset_id: UUID, year: int, month: int) -> List[ResourceBooking]:
+        from datetime import datetime, timezone
+        import calendar
+        _, last_day = calendar.monthrange(year, month)
+        
+        start_date = datetime(year, month, 1, tzinfo=timezone.utc)
+        end_date = datetime(year, month, last_day, 23, 59, 59, tzinfo=timezone.utc)
+
+        stmt = select(ResourceBooking).where(
+            and_(
+                ResourceBooking.asset_id == asset_id,
+                ResourceBooking.start_time >= start_date,
+                ResourceBooking.start_time <= end_date,
+                ResourceBooking.status != "cancelled"
+            )
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
