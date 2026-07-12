@@ -14,12 +14,12 @@ class CategoryService:
         total = len(categories)
         result = []
         for cat in categories:
-            # Hardcode asset_count to 0 for now as assets table isn't built yet
-            asset_count = 0
+            asset_count = await self.cat_repo.get_asset_count(cat.id)
             result.append({
                 "id": cat.id,
                 "name": cat.name,
                 "description": cat.description,
+                "field_schema": cat.field_schema,
                 "asset_count": asset_count,
                 "created_at": cat.created_at,
                 "updated_at": cat.updated_at
@@ -30,11 +30,13 @@ class CategoryService:
         cat = await self.cat_repo.get_by_id(cat_id)
         if not cat:
             raise NotFoundException("Category not found")
+        asset_count = await self.cat_repo.get_asset_count(cat.id)
         return {
             "id": cat.id,
             "name": cat.name,
             "description": cat.description,
-            "asset_count": 0,
+            "field_schema": cat.field_schema,
+            "asset_count": asset_count,
             "created_at": cat.created_at,
             "updated_at": cat.updated_at
         }
@@ -62,10 +64,9 @@ class CategoryService:
         if not cat:
             raise NotFoundException("Category not found")
             
-        # Hardcoded check: ideally we check assets table
-        # asset_count = await self.cat_repo.get_asset_count(cat.id)
-        asset_count = 0 
+        asset_count = await self.cat_repo.get_asset_count(cat.id)
         if asset_count > 0:
             raise ConflictException("Cannot delete category with associated assets")
             
         await self.cat_repo.delete(cat)
+

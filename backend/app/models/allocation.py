@@ -12,7 +12,7 @@ class AllocationStatus(str, Enum):
 
 
 class Allocation(BaseModel):
-    __tablename__ = "allocations"
+    __tablename__ = "asset_allocations"
 
     asset_id             = Column(UUID(as_uuid=True), ForeignKey("assets.id"), nullable=False)
     employee_id          = Column(UUID(as_uuid=True), ForeignKey("users.id"),  nullable=False)
